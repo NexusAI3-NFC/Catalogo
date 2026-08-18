@@ -122,6 +122,10 @@
   .nfc-chip-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .nfc-chip{ font-size:11px; padding:8px 5px; border-radius:9px; background:var(--ink-soft); border:1px solid var(--line); text-align:center; color:var(--paper-dim); }
   .nfc-chip.active{ border-color:var(--rust); background:rgba(198,112,60,0.16); color:var(--paper); font-weight:600; }
+  .nfc-fija-badge{
+    display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:700;
+    background:rgba(198,112,60,0.16); border:1px solid var(--rust); border-radius:10px; padding:11px 13px; color:var(--paper);
+  }
 
   .producto-actions{ display:flex; flex-direction:column; gap:8px; margin-top:auto; padding-top:4px; }
   .btn-solicitar{
@@ -187,6 +191,12 @@
   .nfc-explain .estrella .big{ font-size:30px; margin-bottom:8px; }
   .nfc-explain .estrella b{ display:block; color:var(--gold); font-family:var(--mono); font-size:13px; margin-bottom:6px; }
   .nfc-explain .estrella span{ font-size:12px; color:var(--paper-dim); line-height:1.5; }
+
+  /* ---------- tarjeta de producto con imágenes combinadas (ej. Links Personalizados) ---------- */
+  .producto-combo-imgs{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; height:100%; }
+  .producto-combo-imgs img{ max-height:78%; max-width:44%; object-fit:contain; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
+  .producto-combo-imgs .plus{ font-family:var(--mono); color:var(--slate); font-size:15px; flex-shrink:0; }
+  .producto-badge.morado{ background:rgba(155,126,217,0.2); color:var(--purple); }
 
   /* ---------- CTA final ---------- */
   .cta-final{
@@ -402,6 +412,8 @@
       desc:'Comparte tus redes, tu contacto, reseñas y mucho más con un simple toque o escaneando el QR.',
       incluye:['Tarjeta NFC tamaño tarjeta de crédito','Chip NFC + código QR de respaldo','Configuración básica incluida'],
       imagenes:['assets/tarjeta-1.png'],
+      nfcFija:{ icon:'⭐', label:'Dejar una reseña' },
+      personalizable:false,
     },
     {
       id:'stand',
@@ -414,6 +426,8 @@
       desc:'Expositor de sobremesa que se mantiene de pie solo, sin pilas ni wifi. Ideal para mostrador, mesas o escaparate.',
       incluye:['Expositor acrílico, se sostiene solo','Chip NFC + QR incluidos','No necesita pilas ni wifi'],
       imagenes:['assets/stand-1.png','assets/stand-2.png'],
+      nfcFija:{ icon:'⭐', label:'Dejar una reseña' },
+      personalizable:false,
     },
     {
       id:'menu',
@@ -426,6 +440,7 @@
       desc:'Tarjeta NFC pensada para tu carta digital. Un toque y tus clientes ven el menú al momento.',
       incluye:['Tarjeta NFC + QR','Enlace directo a tu carta digital','Digitalización de la carta con coste aparte'],
       imagenes:['assets/menu-1.png','assets/menu-2.png'],
+      nfcFija:{ icon:'🍽️', label:'Menú' },
     },
     {
       id:'pegatina',
@@ -452,6 +467,24 @@
       imagenes:['assets/personalizada-1.png'],
       destacado:true,
       badge:'PERSONALIZABLE',
+    },
+    {
+      id:'links-personalizados',
+      categoria:'tarjetas',
+      categoriaLabel:'Personalización avanzada',
+      nombre:'Links Personalizados',
+      precio:'A medida',
+      precioSufijo:null,
+      precioNota:'Te damos un presupuesto según lo que necesites — sin coste fijo cerrado.',
+      desc:'Menús digitales, páginas con todos tus enlaces o cualquier otro contenido a medida, con tu marca y tal como lo necesites.',
+      incluye:['Menús digitales editables cuando quieras','Páginas de enlaces: redes, web, WhatsApp, reservas...','Diseño con tu marca y tus colores'],
+      imagenes:['assets/menu-1.png','assets/personalizada-1.png'],
+      combo:true,
+      sinConfig:true,
+      personalizable:false,
+      destacado:true,
+      badge:'DISEÑO A MEDIDA',
+      badgeClase:'morado',
     },
   ];
 
@@ -500,8 +533,10 @@
     grid.innerHTML = PRODUCTOS.map(p => `
       <div class="producto-card ${p.destacado ? 'destacado' : ''}" data-cat="${p.categoria}">
         <div class="producto-img-wrap">
-          ${p.badge ? `<span class="producto-badge">${p.badge}</span>` : ''}
-          <img src="${p.imagenes[0]}" alt="${p.nombre}">
+          ${p.badge ? `<span class="producto-badge ${p.badgeClase||''}">${p.badge}</span>` : ''}
+          ${p.combo
+            ? `<div class="producto-combo-imgs"><img src="${p.imagenes[0]}" alt=""><span class="plus">+</span><img src="${p.imagenes[1]}" alt=""></div>`
+            : `<img src="${p.imagenes[0]}" alt="${p.nombre}">`}
         </div>
         <div class="producto-body">
           <div class="producto-cat">${p.categoriaLabel}</div>
@@ -514,16 +549,21 @@
           </div>
           ${p.precioNota ? `<div class="producto-precio-nota">${p.precioNota}</div>` : ''}
 
+          ${p.sinConfig ? '' : (p.nfcFija ? `
+          <div class="nfc-config-block">
+            <div class="nfc-config-label">⭐ Configuración incluida</div>
+            <div class="nfc-fija-badge">${p.nfcFija.icon} ${p.nfcFija.label}</div>
+          </div>` : `
           <div class="nfc-config-block">
             <div class="nfc-config-label">⭐ Configuración básica — recomendada</div>
             <div class="nfc-chip-grid" data-producto="${p.id}">
               ${NFC_OPCIONES.map((o,i) => `<button class="nfc-chip ${i===1?'active':''}" data-val="${o.label}">${o.icon} ${o.label}</button>`).join('')}
             </div>
-          </div>
+          </div>`)}
 
           <div class="producto-actions">
             <button class="btn-solicitar" data-solicitar="${p.id}">Solicitar ${p.nombre}</button>
-            <button class="btn-personalizar" data-personalizar="${p.id}">Personalizar NFC</button>
+            ${p.personalizable !== false ? `<button class="btn-personalizar" data-personalizar="${p.id}">Personalizar NFC</button>` : ''}
           </div>
         </div>
       </div>
@@ -542,11 +582,17 @@
     grid.querySelectorAll('[data-solicitar]').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = PRODUCTOS.find(x => x.id === btn.dataset.solicitar);
-        const chipEl = grid.querySelector(`.nfc-chip-grid[data-producto="${p.id}"] .nfc-chip.active`);
-        const config = chipEl ? chipEl.dataset.val : 'Configuración básica';
+        let subtitulo;
+        if (p.sinConfig){
+          subtitulo = 'Cuéntanos qué necesitas — menú digital, página de enlaces u otro contenido a medida — y te preparamos un presupuesto.';
+        } else {
+          const config = p.nfcFija ? p.nfcFija.label
+            : (grid.querySelector(`.nfc-chip-grid[data-producto="${p.id}"] .nfc-chip.active`)?.dataset.val || 'Configuración básica');
+          subtitulo = `Vamos a preparar tu ${p.nombre.toLowerCase()} con la configuración «${config}». Cuéntanos cualquier detalle adicional (opcional).`;
+        }
         abrirModal({
           titulo: `Solicitar ${p.nombre}`,
-          subtitulo: `Vamos a preparar tu ${p.nombre.toLowerCase()} con la configuración «${config}». Cuéntanos cualquier detalle adicional (opcional).`,
+          subtitulo,
           successText: `Hemos recibido tu solicitud de «${p.nombre}». Nos pondremos en contacto contigo para prepararlo.`,
         });
       });
